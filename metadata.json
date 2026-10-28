@@ -1,0 +1,6 @@
+{
+  "name": "LedgerLine by Aslam",
+  "description": "Ledger-first Coffee & Resto Operating System. Know Where Your Profit Really Goes. Event-Ledger Costing, Theoretical vs Actual Variance, dan Kontribusi Laba Multi-Channel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

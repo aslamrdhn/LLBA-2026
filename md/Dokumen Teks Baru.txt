@@ -1,0 +1,46 @@
+Lampiran itu (judulnya “PRD V1”, file LLBA.txt) lebih lengkap daripada PRD v2 untuk urusan uang, keamanan, dan kasus tepi. Tapi belum layak diberikan ke agen coding apa adanya. Saya menghitung ulang rumusnya dan menemukan 8 cacat yang bisa dibuktikan, termasuk rumus struk yang membuat jurnal tidak seimbang di 3 dari 4 mode pajak. PRD v2 lebih kuat di dasar repo dan prompt per fase. Jalan terbaik adalah menggabungkan keduanya.
+
+Satu catatan asal: lampiran memakai fixture, asumsi, dan kalimat yang sama dengan v2, jadi tampaknya revisi turunannya. Header-nya bertanggal Mei 2026, padahal audit repo yang ia andalkan tertanggal 21 Okt 2026.
+
+Yang lebih baik di lampiran
+Area	PRD v2	Lampiran
+Buku besar	Jurnal COMMON, FIFO, dan AVG tanpa aturan mana yang masuk buku besar resmi (HPP bisa terhitung dua kali)	PRIMARY masuk buku besar, SECONDARY hanya memo, penjumlahan lintas mesin dilarang
+Peran	4 peran + 2 turunan, ditulis prosa	6 peran + matriks izin per aksi
+Persetujuan di kasir	Hanya Approval online	Manager Override PIN
+Struk, pajak, SC, tip, diskon	Satu kalimat	Rumus 7 langkah, preset dan aturan tumpuk diskon, fixture A18
+Resep saat offline	Tidak diatur resep versi mana yang dipotong	RecipeVersionSnapshot
+Opname vs penjualan offline	Tidak ada	BIZ-010, per item
+Biaya menganggur	Satu kalimat	Alokasi berbasis kapasitas
+TOTP	Fase 9, padahal finalisasi ada di Fase 4	Fase 5
+Operasional	Tidak ada langkah rotasi secret, padahal dev.db dan konfigurasi Firebase ter-commit	Rotasi secret, STATE.md, DECISIONS.md, Docker, CI/CD, runbook, checklist deploy
+Cacat di lampiran
+Jurnal struk tidak seimbang. Memakai matriks posting lampiran sendiri, hanya mode “pajak eksklusif + SC masuk dasar pajak” yang seimbang. Tiga mode lain selisih Rp4.000, Rp4.000, dan Rp7.636 pada fixture A18. Pada mode “SC tidak masuk dasar pajak”, yang disebut default kota non-Jakarta, SC dikreditkan tapi tidak pernah ditagihkan ke pelanggan.
+Fixture A18 varian inklusif salah. Rumusnya menghasilkan gross 44.000 dan total 49.000, sedangkan dokumen menulis 50.000.
+Rumus kapasitas tidak tertutup. Capacity bergantung pada bobot menu, padahal rasionya satu angka per kolam. Dua menu berbobot 1 dan 2 menghasilkan rasio 0,667, 0,333, atau 0,5 tergantung cara membacanya. Kapasitas harian untuk snapshot hari juga tidak ada.
+Provisional “robust” gagal pada tesnya sendiri. Pada skenario bonus 10× di hari 1–2, hari ke-5 menghasilkan 4,1× baseline, dan hari ke-30 menghasilkan 1,6×, bukan “≈ baseline” seperti tes menuntut. Uang bonus itu memang keluar. Untuk gaji dan listrik yang dibayar sekali sebulan, hasilnya menempel di lantai 80% dengan confidence LOW sampai pembayaran terakhir masuk.
+R3 mesin sekunder gagal tiap malam. Dengan fixture A3, saldo memo akun 1100 adalah −375.000, padahal nilai stok Average 125.000. Syaratnya harus COMMON + memo.
+Laba bersih berisiko dihitung ganda. Rumusnya mengurangi biaya operasional dan IdleCost, sementara jurnal IDLE_COST memindahkan nilai dari akun biaya yang sama. Pada kasus Rp10 juta dengan 10 dari 3.000 unit terjual, rugi tampil Rp19,97 juta, seharusnya Rp10 juta. Ini bergantung pada apakah “biaya operasional” dihitung sebelum atau sesudah reklasifikasi, dan dokumen tidak menyebutnya.
+Manager Override PIN offline tidak aman. Payload membawa managerPinHash?, jadi hash PIN 6 angka tersimpan di perangkat kasir. Hash itu hanya punya 1 juta kemungkinan dan bisa ditebak offline, dan batas 5 percobaan tidak bisa ditegakkan tanpa server. Aturannya juga bertentangan: tes menulis “6 PIN salah”, aturan menulis 3 atau 5.
+Urutan fase bermasalah.
+Finalisasi True Cost (Fase 4) butuh TOTP (Fase 5), dan otplib baru masuk di Fase 9.
+PENDING_MIGRATION hanya bisa selesai lewat Migration Center (Fase 8), padahal pilot boleh jalan setelah Fase 5. Penjualan sebelum stok awal akan macet 72 jam lalu ditolak BIZ-012.
+
+Cacat kecil lainnya:
+
+Rujukan §0.3 dan kode K1–K6/T/S tidak punya tabel definisinya.
+BIZ-009 dan BIZ-012 kembar.
+Peran SUPPLIER ada tapi tanpa login dan tanpa izin.
+Refund hanya membalik pendapatan, bukan pajak, SC, atau tip.
+Ganti mesin utama tidak punya prosedur penilaian ulang (v2 juga).
+Pembulatan Average 4 desimal dari temuan kemarin belum ditambal di kedua dokumen.
+
+Yang cocok setelah saya hitung ulang: fixture A3 dan A5, A18 mode dasar, skenario kapasitas low/full/over/empty (33.333 dan 9.966.667), prorata diskon (5.000 kasus acak), dan linimasa grace (24+48=72, +24=96 jam). Perlakuan pajak dan akuntansinya sendiri belum saya verifikasi dan perlu dikonfirmasi akuntan atau konsultan pajak.
+
+Yang hilang di lampiran
+Tabel temuan audit repo (K1–K6, T1–T7, S1–S8), peta modul, dan struktur folder.
+Prompt siap tempel per fase.
+Tabel perubahan v1 ke v2.
+Keputusan yang perlu dari Anda
+a. Supply Hub: lampiran membuang portal supplier (pengadaan internal), v2 mempertahankannya. Membuangnya mengurangi permukaan serangan, tapi mengubah produk dari “penemuan supplier” menjadi “pengadaan internal”. Saya sarankan ikut lampiran untuk MVP dan portal menyusul.
+b. Alokasi berbasis kapasitas: saya sarankan dipakai setelah rumusnya diperbaiki dan dikonfirmasi akuntan.
+c. Override PIN: saya sarankan hanya online.

@@ -1,0 +1,22 @@
+{
+  "short_name": "LedgerLine",
+  "name": "LedgerLine POS Buku-Kas",
+  "description": "Progressive Web App Point-of-Sale Real-time & Buku Kas Accounting Core",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=192&auto=format&fit=crop",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=512&auto=format&fit=crop",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "any"
+}
